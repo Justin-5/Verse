@@ -9,10 +9,19 @@ import re
 
 
 @dataclass
+class LyricWord:
+    """Data structure for storing individual word with timestamp."""
+    timestamp: float  # Time in seconds when word should appear
+    text: str        # Word text
+    line_index: int  # Which line this word belongs to
+
+
+@dataclass
 class LyricLine:
     """Data structure for storing timestamped lyric lines."""
     timestamp: float  # Time in seconds
     text: str        # Lyric text
+    words: List['LyricWord'] = None  # Optional word-level timing
 
     def __post_init__(self):
         """Validate the lyric line data after initialization."""
@@ -20,6 +29,8 @@ class LyricLine:
             raise ValueError("Timestamp cannot be negative")
         if not isinstance(self.text, str):
             raise ValueError("Text must be a string")
+        if self.words is None:
+            self.words = []
 
 
 class LyricsParser:
@@ -82,6 +93,10 @@ class LyricsParser:
 
             # Sort by timestamp for efficient lookup
             lyrics.sort(key=lambda x: x.timestamp)
+
+            # Generate word-level timing automatically
+            self._generate_word_timing(lyrics)
+
             self.lyrics = lyrics
             return lyrics
 
@@ -119,3 +134,170 @@ class LyricsParser:
                 break
 
         return current_lyric
+
+    def get_current_words(self, timestamp: float) -> Optional[str]:
+        """
+        Get the current words that should be displayed up to the given timestamp.
+        This enables word-by-word karaoke-style display.
+
+        Args:
+            timestamp: Current playback time in seconds
+
+        Returns:
+            String of words that should be displayed so far
+        """
+        if not self.lyrics:
+            return None
+
+        # Find which line we're currently in
+        current_line_index = -1
+        for i, lyric_line in enumerate(self.lyrics):
+            if lyric_line.timestamp <= timestamp:
+                current_line_index = i
+            else:
+                break
+
+        if current_line_index < 0:
+            return None
+
+        current_line = self.lyrics[current_line_index]
+
+        # If no word-level timing, return full line
+        if not current_line.words:
+            return current_line.text
+
+        # Build string of words that should be visible
+        visible_words = []
+        for word in current_line.words:
+            if word.timestamp <= timestamp:
+                visible_words.append(word.text)
+            else:
+                break
+
+        return ' '.join(visible_words) if visible_words else None
+
+        # Find which line we're currently in
+        current_line_index = -1
+        for i, lyric_line in enumerate(self.lyrics):
+            if lyric_line.timestamp <= timestamp:
+                current_line_index = i
+            else:
+                break
+
+        if current_line_index < 0:
+            return None
+
+        current_line = self.lyrics[current_line_index]
+
+        # If no word-level timing, return full line
+        if not current_line.words:
+            return current_line.text
+
+        # Build string of words that should be visible
+        visible_words = []
+        for word in current_line.words:
+            if word.timestamp <= timestamp:
+                visible_words.append(word.text)
+            else:
+                break
+
+        return ' '.join(visible_words) if visible_words else None
+
+    def _generate_word_timing(self, lyrics: List[LyricLine]) -> None:
+        """
+        Automatically generate word-level timing for each line.
+        Distributes words evenly across the duration until the next line.
+
+        Args:
+            lyrics: List of lyric lines to process
+        """
+        for i, line in enumerate(lyrics):
+            if not line.text:
+                continue
+
+            # Split line into words
+            words = line.text.split()
+            if not words:
+                continue
+
+            # Calculate duration until next line (or default 4 seconds)
+            if i < len(lyrics) - 1:
+                duration = lyrics[i + 1].timestamp - line.timestamp
+            else:
+                duration = 4.0  # Default duration for last line
+
+            # Distribute words evenly across the duration
+            time_per_word = duration / len(words)
+
+            line.words = []
+            for word_index, word in enumerate(words):
+                word_timestamp = line.timestamp + (word_index * time_per_word)
+                line.words.append(LyricWord(
+                    timestamp=word_timestamp,
+                    text=word,
+                    line_index=i
+                ))
+
+    def get_current_word_only(self, timestamp: float) -> Optional[str]:
+        """
+        Get only the current word being sung (not accumulated).
+        Shows one word at a time without previous words.
+
+        Args:
+            timestamp: Current playback time in seconds
+
+        Returns:
+            Only the current word that should be displayed
+        """
+        if not self.lyrics:
+            return None
+
+        # Find which line we're currently in
+        current_line_index = -1
+        for i, lyric_line in enumerate(self.lyrics):
+            if lyric_line.timestamp <= timestamp:
+                current_line_index = i
+            else:
+                break
+
+        if current_line_index < 0:
+            return None
+
+        current_line = self.lyrics[current_line_index]
+
+        # If no word-level timing, return full line
+        if not current_line.words:
+            return current_line.text
+
+        # Find the current word only (not accumulated)
+        current_word = None
+        for word in current_line.words:
+            if word.timestamp <= timestamp:
+                current_word = word.text
+            else:
+                break
+
+        return current_word
+
+    def get_current_line_index(self, timestamp: float) -> int:
+        """
+        Get the index of the current line being displayed.
+        Used to detect when we move to a new line.
+
+        Args:
+            timestamp: Current playback time in seconds
+
+        Returns:
+            Index of current line, or -1 if no line is active
+        """
+        if not self.lyrics:
+            return -1
+
+        current_line_index = -1
+        for i, lyric_line in enumerate(self.lyrics):
+            if lyric_line.timestamp <= timestamp:
+                current_line_index = i
+            else:
+                break
+
+        return current_line_index

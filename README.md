@@ -4,10 +4,13 @@ A Python-based terminal music player that provides synchronized lyric display du
 
 ## Features
 
+- **Song Header Display**: Beautiful centered header showing the song name before playback
+- **Word-by-Word Display**: Karaoke-style word-by-word lyric display for easy sing-along
 - **Synchronized Lyrics**: Real-time lyric display synchronized with audio playback (±0.2 seconds accuracy)
 - **Rich Terminal Interface**: Beautiful color-coded and centered lyrics using the Rich library
 - **Multiple Audio Formats**: Supports MP3 and WAV audio files
 - **LRC Format Support**: Standard LRC lyric file format with timestamp parsing
+- **Automatic Word Timing**: Intelligently distributes words across line duration
 - **Modular Architecture**: Clean, extensible codebase under 250 lines
 - **Cross-Platform**: Works on Windows, macOS, and Linux
 - **Graceful Error Handling**: Comprehensive validation and user-friendly error messages
