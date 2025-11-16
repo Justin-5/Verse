@@ -19,6 +19,7 @@ class AudioPlayer:
         self._start_time: float = 0.0
         self._pause_time: float = 0.0
         self._mixer_initialized: bool = False
+        self._duration: float = 0.0
 
         # Initialize pygame mixer
         try:
@@ -63,11 +64,53 @@ class AudioPlayer:
             # Load the music file
             pygame.mixer.music.load(file_path)
             self.loaded_file = file_path
+
+            # Try to get duration for WAV files
+            self._duration = self._get_duration(file_path)
+
             return True
 
         except pygame.error:
             self.loaded_file = None
             return False
+
+    def _get_duration(self, file_path: str) -> float:
+        """
+        Get the duration of the audio file in seconds.
+
+        Args:
+            file_path: Path to the audio file
+
+        Returns:
+            Duration in seconds, or 0.0 if unable to determine
+        """
+        try:
+            path = Path(file_path)
+
+            # For WAV files, we can use wave module
+            if path.suffix.lower() == '.wav':
+                import wave
+                with wave.open(file_path, 'r') as wav_file:
+                    frames = wav_file.getnframes()
+                    rate = wav_file.getframerate()
+                    duration = frames / float(rate)
+                    return duration
+
+            # For MP3 files, we'd need mutagen or similar library
+            # For now, return 0.0 and let it be estimated during playback
+            return 0.0
+
+        except Exception:
+            return 0.0
+
+    def get_duration(self) -> float:
+        """
+        Get the total duration of the loaded song.
+
+        Returns:
+            Duration in seconds, or 0.0 if not available
+        """
+        return self._duration
 
     def play(self) -> None:
         """Start audio playback."""

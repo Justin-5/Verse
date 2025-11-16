@@ -301,3 +301,36 @@ class LyricsParser:
                 break
 
         return current_line_index
+
+    def get_context_lyrics(self, timestamp: float) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        """
+        Get the previous, current, and next lyric lines for context display.
+
+        Args:
+            timestamp: Current playback time in seconds
+
+        Returns:
+            Tuple of (previous_lyric, current_lyric, next_lyric)
+        """
+        if not self.lyrics:
+            return None, None, None
+
+        current_index = self.get_current_line_index(timestamp)
+
+        if current_index < 0:
+            return None, None, None
+
+        # Get current lyric (with word-by-word display)
+        current_lyric = self.get_current_words(timestamp)
+
+        # Get previous lyric (full line)
+        previous_lyric = None
+        if current_index > 0:
+            previous_lyric = self.lyrics[current_index - 1].text
+
+        # Get next lyric (full line)
+        next_lyric = None
+        if current_index < len(self.lyrics) - 1:
+            next_lyric = self.lyrics[current_index + 1].text
+
+        return previous_lyric, current_lyric, next_lyric

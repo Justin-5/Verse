@@ -1,0 +1,71 @@
+🎨 Display Enhancement Suggestions
+1. Progress Bar / Time Display
+Add a visual progress indicator showing current position and total duration:
+
+♪ Sample Song ♪
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[01:23 / 03:45] ████████████████░░░░░░░░░░░░░░░░ 42%
+
+        Welcome to Verse Music Player
+2. Gradient/Rainbow Text Effects
+Use Rich's gradient feature for more dynamic lyrics:
+
+from rich.text import Text
+
+# Rainbow gradient
+styled_text = Text(text)
+styled_text.stylize("bold magenta on black")
+# Or use gradient: "bold cyan" -> "bold blue" -> "bold magenta"
+3. Animated Transitions
+Add subtle fade-in effects or sliding animations between lyrics using Rich's Live display.
+
+4. Context Lines (Previous/Next)
+Show previous and upcoming lyrics in dimmed colors:
+
+        This is a sample song for testing
+        
+    >>> Synchronized lyrics display <<<  (current - bright)
+        
+        Line by line in perfect time
+5. Visual Separators & Borders
+Add decorative elements around the current lyric:
+
+╔═══════════════════════════════════════════╗
+║                                           ║
+║     Welcome to Verse Music Player         ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+6. Emoji & Icons
+Add contextual emojis based on lyrics or playback state:
+
+🎵 for music-related words
+▶️ when playing
+⏸️ when paused
+🎤 for vocal emphasis
+7. Background Patterns
+Subtle background patterns or ASCII art that doesn't interfere with readability:
+
+    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·
+    
+        Welcome to Verse Music Player
+        
+    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·
+8. Dynamic Color Schemes
+Change colors based on:
+
+Song tempo (fast = warm colors, slow = cool colors)
+Time of day (darker at night)
+Lyric sentiment (if you add basic keyword detection)
+9. Karaoke-Style Word Highlighting
+Highlight the current word being sung in a different color:
+
+Welcome to Verse Music Player
+        ^^^^^ (highlighted in yellow/green)
+10. Playback Controls Display
+Show available controls at the bottom:
+
+        Welcome to Verse Music Player
+
+
+    ─────────────────────────────────────────
+    [Space] Pause  [Q] Quit  [←→] Seek ±5s

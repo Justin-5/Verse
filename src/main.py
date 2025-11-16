@@ -146,8 +146,11 @@ class VersePlayer:
             song_name = self.song_path.stem.replace(
                 '_', ' ').replace('-', ' ').title()
 
-            # Show song header
-            self.display.show_song_header(song_name)
+            # Get song duration
+            duration = self.audio_player.get_duration()
+
+            # Show song header with duration
+            self.display.show_song_header(song_name, duration)
 
             # Wait a moment for user to see the header
             import time
@@ -173,7 +176,7 @@ class VersePlayer:
         """Main synchronization loop for coordinating audio and lyrics."""
         try:
             current_line_index = -1
-            is_new_line = False
+            last_displayed_lyric = None
 
             while self.audio_player.is_playing():
                 # Get current playback position
@@ -184,31 +187,34 @@ class VersePlayer:
                 new_line_index = self.lyrics_parser.get_current_line_index(
                     current_time)
 
-                # If we moved to a new line, set flag to clear display
-                if new_line_index != current_line_index and new_line_index >= 0:
-                    current_line_index = new_line_index
-                    self.last_displayed_lyric = None  # Reset to force update
-                    is_new_line = True
-
-                # Get accumulated words for current line (word-by-word on same line)
-                current_words = self.lyrics_parser.get_current_words(
+                # Get context lyrics (previous, current, next)
+                prev_lyric, current_lyric, next_lyric = self.lyrics_parser.get_context_lyrics(
                     current_time)
 
-                # Update display only if words have changed
-                if current_words != self.last_displayed_lyric:
-                    if current_words:
-                        # Clear line only when starting a new line
-                        self.display.show_lyric(
-                            current_words, clear_line=is_new_line)
-                        is_new_line = False  # Reset flag after first word of new line
+                # Detect if we moved to a new line
+                line_changed = new_line_index != current_line_index and new_line_index >= 0
+
+                # Update display if current lyric changed (word-by-word) or line changed
+                if current_lyric != last_displayed_lyric or line_changed:
+                    if current_lyric:
+                        # Show lyric with context and progress bar
+                        self.display.show_lyric_with_context(
+                            current_text=current_lyric,
+                            previous_text=prev_lyric,
+                            next_text=next_lyric,
+                            current_time=current_time,
+                            clear_screen=line_changed
+                        )
+                        last_displayed_lyric = current_lyric
                     else:
                         # Clear display if no lyric should be shown
                         self.display.clear_display()
+                        last_displayed_lyric = None
 
-                    self.last_displayed_lyric = current_words
-                    self.state.current_lyric = current_words
+                    current_line_index = new_line_index
+                    self.state.current_lyric = current_lyric
 
-                # Sleep for 50ms for smoother word-by-word display
+                # Sleep for 50ms for smoother updates
                 time.sleep(0.05)
 
             # Playback finished
